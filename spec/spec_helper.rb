@@ -1,6 +1,7 @@
+# typed: strict
 # frozen_string_literal: true
 
-require "openapi/sorbet/rails"
+require "openapi_sorbet_rails"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

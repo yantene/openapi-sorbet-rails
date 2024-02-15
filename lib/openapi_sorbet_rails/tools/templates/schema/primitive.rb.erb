@@ -1,0 +1,12 @@
+# typed: strict
+
+class <%= class_name %> < T::Struct
+  extend T::Sig
+  include OpenapiSorbetRails::Schema
+
+  const :value, <%= type %>
+
+  delegate :as_json, to: :value
+end
+
+<%= spec_doc.gsub(/^/, "# ").strip %>

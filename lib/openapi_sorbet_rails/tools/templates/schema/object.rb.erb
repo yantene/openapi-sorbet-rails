@@ -1,0 +1,21 @@
+# typed: strict
+
+class <%= class_name %> < T::Struct
+  extend T::Sig
+  include OpenapiSorbetRails::Schema
+
+  <%- property_types.each do |name, type| -%>
+  const :<%= name.underscore %>, <%= type %>
+  <%- end -%>
+
+  sig { override.returns(T::Hash[Symbol, T.untyped]) }
+  def as_json
+    {
+      <%- property_types.each do |name, _| -%>
+      <%= name %>: method(:<%= name.underscore %>).call.as_json,
+      <%- end -%>
+    }
+  end
+end
+
+<%= spec_doc.gsub(/^/, "# ").strip %>
