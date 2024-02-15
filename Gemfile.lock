@@ -4,6 +4,7 @@ PATH
     openapi-sorbet-rails (0.1.0)
       activesupport
       sorbet-runtime
+      thor
 
 GEM
   remote: https://rubygems.org/
