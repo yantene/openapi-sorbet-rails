@@ -5,7 +5,7 @@ class <%= class_name %> < T::Struct
   include OpenapiSorbetRails::Schema
 
   <%- properties.each do |name, type| -%>
-  const :<%= name.underscore %>, <%= type %>
+  const :<%= name.to_s.underscore %>, <%= type %>
   <%- end -%>
 
   sig { override.returns(T::Hash[Symbol, T.untyped]) }

@@ -4,15 +4,15 @@ class <%= class_name %> < T::Struct
   extend T::Sig
   include OpenapiSorbetRails::Schema
 
-  <%- property_types.each do |name, type| -%>
-  const :<%= name.underscore %>, <%= type %>
+  <%- property_types.each do |name, v| -%>
+  const :<%= name.to_s.underscore %>, <%= v[:type] %>
   <%- end -%>
 
   sig { override.returns(T::Hash[Symbol, T.untyped]) }
   def as_json
     {
       <%- property_types.each do |name, _| -%>
-      <%= name %>: method(:<%= name.underscore %>).call.as_json,
+      <%= name %>: method(:<%= name.to_s.underscore %>).call.as_json,
       <%- end -%>
     }
   end

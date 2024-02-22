@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: Simple Microblog API
+  description: This is a simple API for a microblogging service.
+  version: 1.0.0
+servers:
+  - url: "https://api.microblog.example.com/v1"
+paths:
+  /posts:
+    get:
+      summary: Get a list of posts
+      responses:
+        "200":
+          description: A list of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+    post:
+      summary: Create a new post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewPost"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+  /posts/{postId}:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get a single post by ID
+      responses:
+        "200":
+          description: A single post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+    put:
+      summary: Replace a post by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewPost"
+      responses:
+        "200":
+          description: The updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+    patch:
+      summary: Update a post by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostUpdate"
+      responses:
+        "200":
+          description: The updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+    delete:
+      summary: Delete a post by ID
+      responses:
+        "204":
+          description: No Content
+components:
+  schemas:
+    Post:
+      type: object
+      required:
+        - id
+        - content
+        - createdAt
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+    NewPost:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+    PostUpdate:
+      type: object
+      properties:
+        content:
+          oneOf:
+            - type: string
+            - type: "null"
+        metadata:
+          anyOf:
+            - $ref: "#/components/schemas/Metadata"
+            - type: "null"
+    Metadata:
+      allOf:
+        - type: object
+          properties:
+            likes:
+              type: integer
+              minimum: 0
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+            isPublic:
+              type: boolean

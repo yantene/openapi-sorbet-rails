@@ -7,7 +7,7 @@ module OpenapiSorbetRails
 
     interface!
 
-    sig {
+    sig do
       abstract.returns(
         T.any(
           Float,
@@ -19,7 +19,7 @@ module OpenapiSorbetRails
           T::Array[T.untyped]
         )
       )
-    }
+    end
     def as_json
     end
   end

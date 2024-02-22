@@ -3,7 +3,7 @@
 require "sorbet-runtime"
 require "thor"
 
-require_relative "./tools/schema_generator"
+require_relative "tools/schema_generator"
 
 module OpenapiSorbetRails
   class CLI < Thor
@@ -16,10 +16,10 @@ module OpenapiSorbetRails
     desc "schema API_SPEC_PATH", "Generate Sorbet classes from OpenAPI schema"
     sig { params(api_spec_path: String).void }
     def schema(api_spec_path)
-      generator = OpenapiSorbetRails::Tools::SchemaGenerator.new(
+      generator = OpenapiSorbetRails::Tools::SchemaGenerator.from_file(
         api_spec_path:,
         output_dir: options[:output] || "#{Dir.pwd}/output",
-        namespace: options[:namespace] || "Schema",
+        namespace: options[:namespace] || "Schema"
       )
 
       generator.clean_up! if options[:clean]
