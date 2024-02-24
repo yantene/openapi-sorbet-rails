@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # typed: false
 
 require "spec_helper"
@@ -5,13 +6,13 @@ require "tmpdir"
 require "prism"
 require "zeitwerk"
 
-require "openapi_sorbet_rails/tools/schema_generator"
+require "openapi_sorbet_rails/generator/schema_generator"
 
 require "psych"
 require "active_support/all"
 
-RSpec.describe OpenapiSorbetRails::Tools::SchemaGenerator do
-  describe "#generate_schema" do
+RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
+  describe "#generate!" do
     around(:example) do |example|
       Dir.mktmpdir do |dir|
         @dir = Pathname.new(dir)
@@ -44,55 +45,6 @@ RSpec.describe OpenapiSorbetRails::Tools::SchemaGenerator do
                 SimpleNull:
                   type: "null"
           YAML
-        end
-
-        it "generates a class file in the correct location" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          expect(File).to exist(@dir.join("fizz/buzz/schema/simple_integer.rb").to_s)
-          expect(File).to exist(@dir.join("fizz/buzz/schema/simple_number.rb").to_s)
-          expect(File).to exist(@dir.join("fizz/buzz/schema/simple_string.rb").to_s)
-          expect(File).to exist(@dir.join("fizz/buzz/schema/simple_boolean.rb").to_s)
-          expect(File).to exist(@dir.join("fizz/buzz/schema/simple_null.rb").to_s)
-        end
-
-        it "generates a class with the correct name" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          %i[
-            SimpleInteger
-            SimpleNumber
-            SimpleString
-            SimpleBoolean
-            SimpleNull
-          ].each do |class_name|
-            ast = Prism.parse_file(@dir.join("fizz/buzz/schema/#{class_name.to_s.underscore}.rb").to_s)
-
-            class_node = ast.value.statements.body.find { _1.name == class_name }
-
-            expect(class_node.name).to eq class_name
-          end
-        end
-
-        it "generates a class with the correct namespace" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          %i[
-            SimpleInteger
-            SimpleNumber
-            SimpleString
-            SimpleBoolean
-            SimpleNull
-          ].each do |class_name|
-            ast = Prism.parse_file(@dir.join("fizz/buzz/schema/#{class_name.to_s.underscore}.rb").to_s)
-
-            class_node = ast.value.statements.body.find { _1.name == class_name }
-
-            expect(class_node.constant_path.child.name).to eq class_name
-            expect(class_node.constant_path.parent.child.name).to eq :Schema
-            expect(class_node.constant_path.parent.parent.child.name).to eq :Buzz
-            expect(class_node.constant_path.parent.parent.parent.name).to eq :Fizz
-          end
         end
 
         it "generates a class that returns the correct JSON" do
@@ -153,35 +105,6 @@ RSpec.describe OpenapiSorbetRails::Tools::SchemaGenerator do
           YAML
         end
 
-        it "generates a class file in the correct location" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          expect(File).to exist(@dir.join("fizz/buzz/schema/flat_object.rb").to_s)
-        end
-
-        it "generates a class with the correct name" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          ast = Prism.parse_file(@dir.join("fizz/buzz/schema/flat_object.rb").to_s)
-
-          class_node = ast.value.statements.body.find { _1.name == :FlatObject }
-
-          expect(class_node.name).to eq :FlatObject
-        end
-
-        it "generates a class with the correct namespace" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          ast = Prism.parse_file(@dir.join("fizz/buzz/schema/flat_object.rb").to_s)
-
-          class_node = ast.value.statements.body.find { _1.name == :FlatObject }
-
-          expect(class_node.constant_path.child.name).to eq :FlatObject
-          expect(class_node.constant_path.parent.child.name).to eq :Schema
-          expect(class_node.constant_path.parent.parent.child.name).to eq :Buzz
-          expect(class_node.constant_path.parent.parent.parent.name).to eq :Fizz
-        end
-
         it "generates a class that returns the correct JSON" do
           described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
           @loader.reload
@@ -233,25 +156,6 @@ RSpec.describe OpenapiSorbetRails::Tools::SchemaGenerator do
           YAML
         end
 
-        it "generates a class file in the correct location" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          expect(File).to exist(@dir.join("fizz/buzz/schema/flat_one_of.rb").to_s)
-        end
-
-        it "generates a class with the correct namespace" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          ast = Prism.parse_file(@dir.join("fizz/buzz/schema/flat_one_of.rb").to_s)
-
-          class_node = ast.value.statements.body.find { _1.name == :FlatOneOf }
-
-          expect(class_node.constant_path.child.name).to eq :FlatOneOf
-          expect(class_node.constant_path.parent.child.name).to eq :Schema
-          expect(class_node.constant_path.parent.parent.child.name).to eq :Buzz
-          expect(class_node.constant_path.parent.parent.parent.name).to eq :Fizz
-        end
-
         it "generates a class that returns the correct JSON" do
           described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
           @loader.reload
@@ -288,25 +192,6 @@ RSpec.describe OpenapiSorbetRails::Tools::SchemaGenerator do
                         bar:
                           type: string
           YAML
-        end
-
-        it "generates a class file in the correct location" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          expect(File).to exist(@dir.join("fizz/buzz/schema/object_all_of.rb").to_s)
-        end
-
-        it "generates a class with the correct namespace" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
-
-          ast = Prism.parse_file(@dir.join("fizz/buzz/schema/object_all_of.rb").to_s)
-
-          class_node = ast.value.statements.body.find { _1.name == :ObjectAllOf }
-
-          expect(class_node.constant_path.child.name).to eq :ObjectAllOf
-          expect(class_node.constant_path.parent.child.name).to eq :Schema
-          expect(class_node.constant_path.parent.parent.child.name).to eq :Buzz
-          expect(class_node.constant_path.parent.parent.parent.name).to eq :Fizz
         end
 
         it "generates a class that returns the correct JSON" do
@@ -440,9 +325,9 @@ RSpec.describe OpenapiSorbetRails::Tools::SchemaGenerator do
 
           expect(
             Fizz::Buzz::Schema::RefObject.new(
-              simple_integer: Fizz::Buzz::Schema::SimpleInteger.new(value: 1),
+              simple_integer: Fizz::Buzz::Schema::SimpleInteger.new(value: 1)
             ).as_json
-          ).to eq({ simpleInteger: 1 })
+          ).to eq({simpleInteger: 1})
         end
       end
     end

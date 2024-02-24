@@ -2,9 +2,8 @@
 # frozen_string_literal: true
 
 require_relative "openapi_sorbet_rails/cli"
-require_relative "openapi_sorbet_rails/response"
-require_relative "openapi_sorbet_rails/schema"
-require_relative "openapi_sorbet_rails/tools"
+require_relative "openapi_sorbet_rails/interface"
+require_relative "openapi_sorbet_rails/generator"
 require_relative "openapi_sorbet_rails/version"
 
 module OpenapiSorbetRails
