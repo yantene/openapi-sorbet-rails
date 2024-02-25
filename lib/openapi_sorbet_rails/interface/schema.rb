@@ -3,7 +3,7 @@
 
 module OpenapiSorbetRails
   module Interface
-    module Schema
+    module Component
       extend T::Sig
       extend T::Helpers
 

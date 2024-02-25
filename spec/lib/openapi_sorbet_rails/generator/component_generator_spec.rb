@@ -6,12 +6,12 @@ require "tmpdir"
 require "prism"
 require "zeitwerk"
 
-require "openapi_sorbet_rails/generator/schema_generator"
+require "openapi_sorbet_rails/generator/component_generator"
 
 require "psych"
 require "active_support/all"
 
-RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
+RSpec.describe OpenapiSorbetRails::Generator::ComponentGenerator do
   describe "#generate!" do
     around(:example) do |example|
       Dir.mktmpdir do |dir|
@@ -48,7 +48,7 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class that returns the correct JSON" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
           {
@@ -58,14 +58,14 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
             SimpleBoolean: true,
             SimpleNull: nil
           }.each do |class_name, value|
-            simple_primitive = Fizz::Buzz::Schema.const_get(class_name).new(value:)
+            simple_primitive = Api::Components::Schemas.const_get(class_name).new(value:)
 
             expect(simple_primitive.as_json).to eq(value)
           end
         end
 
         it "generates a class that raises an error when the value is not one of the types" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
           {
@@ -75,7 +75,7 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
             SimpleBoolean: nil,
             SimpleNull: 1
           }.each do |class_name, value|
-            expect { Fizz::Buzz::Schema.const_get(class_name).new(value:) }.to raise_error(TypeError)
+            expect { Api::Components::Schemas.const_get(class_name).new(value:) }.to raise_error(TypeError)
           end
         end
       end
@@ -106,10 +106,10 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class that returns the correct JSON" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
-          flat_object = Fizz::Buzz::Schema::FlatObject.new(
+          flat_object = Api::Components::Schemas::FlatObject.new(
             int: 1,
             str: "fizzbuzz",
             nul: nil,
@@ -125,11 +125,11 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class that raises an error when the value is not one of the types" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
           expect do
-            Fizz::Buzz::Schema::FlatObject.new(
+            Api::Components::Schemas::FlatObject.new(
               int: "fizzbuzz",
               str: nil,
               nul: nil,
@@ -157,19 +157,19 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class that returns the correct JSON" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
-          expect(Fizz::Buzz::Schema::FlatOneOf.new(value: 1).as_json).to eq(1)
-          expect(Fizz::Buzz::Schema::FlatOneOf.new(value: "one").as_json).to eq("one")
+          expect(Api::Components::Schemas::FlatOneOf.new(value: 1).as_json).to eq(1)
+          expect(Api::Components::Schemas::FlatOneOf.new(value: "one").as_json).to eq("one")
         end
 
         it "generates a class that raises an error when the value is not one of the types" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
           expect do
-            Fizz::Buzz::Schema::FlatOneOf.new(value: 1.5)
+            Api::Components::Schemas::FlatOneOf.new(value: 1.5)
           end.to raise_error(TypeError)
         end
       end
@@ -195,13 +195,13 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class that returns the correct JSON" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
           expect(
-            Fizz::Buzz::Schema::ObjectAllOf.new(
-              all_of1: Fizz::Buzz::Schema::ObjectAllOf::AllOf1.new(foo: 1),
-              all_of2: Fizz::Buzz::Schema::ObjectAllOf::AllOf2.new(bar: "one")
+            Api::Components::Schemas::ObjectAllOf.new(
+              all_of1: Api::Components::Schemas::ObjectAllOf::AllOf1.new(foo: 1),
+              all_of2: Api::Components::Schemas::ObjectAllOf::AllOf2.new(bar: "one")
             ).as_json
           ).to eq(
             foo: 1,
@@ -210,13 +210,13 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class that raises an error when the value is not one of the types" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
           expect do
-            Fizz::Buzz::Schema::ObjectAllOf.new(
-              all_of1: Fizz::Buzz::Schema::ObjectAllOf::AllOf1.new(foo: "one"),
-              all_of2: Fizz::Buzz::Schema::ObjectAllOf::AllOf2.new(bar: 1)
+            Api::Components::Schemas::ObjectAllOf.new(
+              all_of1: Api::Components::Schemas::ObjectAllOf::AllOf1.new(foo: "one"),
+              all_of2: Api::Components::Schemas::ObjectAllOf::AllOf2.new(bar: 1)
             )
           end.to raise_error(TypeError)
         end
@@ -237,7 +237,7 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates no flat_array.rb file" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
 
           expect(File).not_to exist(@dir.join("fizz/buzz/schema/flat_array.rb").to_s)
         end
@@ -259,40 +259,40 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class file and a module file in the correct location" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
-          expect(File).to exist(@dir.join("fizz/buzz/schema/object_array.rb").to_s)
-          expect(File).to exist(@dir.join("fizz/buzz/schema/object_array/item.rb").to_s)
+          expect(File).to exist(@dir.join("api/components/schemas/object_array.rb").to_s)
+          expect(File).to exist(@dir.join("api/components/schemas/object_array/item.rb").to_s)
         end
 
         it "generates a module with the correct name" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
-          ast = Prism.parse_file(@dir.join("fizz/buzz/schema/object_array.rb").to_s)
+          ast = Prism.parse_file(@dir.join("api/components/schemas/object_array.rb").to_s)
 
           module_node = ast.value.statements.body.find { _1.name == :ObjectArray }
 
           expect(module_node.constant_path.child.name).to eq :ObjectArray
-          expect(module_node.constant_path.parent.child.name).to eq :Schema
-          expect(module_node.constant_path.parent.parent.child.name).to eq :Buzz
-          expect(module_node.constant_path.parent.parent.parent.name).to eq :Fizz
+          expect(module_node.constant_path.parent.child.name).to eq :Schemas
+          expect(module_node.constant_path.parent.parent.child.name).to eq :Components
+          expect(module_node.constant_path.parent.parent.parent.name).to eq :Api
         end
 
         it "generates a class with the correct name" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
-          ast = Prism.parse_file(@dir.join("fizz/buzz/schema/object_array/item.rb").to_s)
+          ast = Prism.parse_file(@dir.join("api/components/schemas/object_array/item.rb").to_s)
 
           class_node = ast.value.statements.body.find { _1.name == :Item }
 
           expect(class_node.constant_path.child.name).to eq :Item
           expect(class_node.constant_path.parent.child.name).to eq :ObjectArray
-          expect(class_node.constant_path.parent.parent.child.name).to eq :Schema
-          expect(class_node.constant_path.parent.parent.parent.child.name).to eq :Buzz
-          expect(class_node.constant_path.parent.parent.parent.parent.name).to eq :Fizz
+          expect(class_node.constant_path.parent.parent.child.name).to eq :Schemas
+          expect(class_node.constant_path.parent.parent.parent.child.name).to eq :Components
+          expect(class_node.constant_path.parent.parent.parent.parent.name).to eq :Api
         end
       end
     end
@@ -314,18 +314,18 @@ RSpec.describe OpenapiSorbetRails::Generator::SchemaGenerator do
         end
 
         it "generates a class file in the correct location" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
 
-          expect(File).to exist(@dir.join("fizz/buzz/schema/ref_object.rb").to_s)
+          expect(File).to exist(@dir.join("api/components/schemas/ref_object.rb").to_s)
         end
 
         it "generates a class that returns the correct JSON" do
-          described_class.new(api_spec: schema, output_dir: @dir, namespace: "Fizz::Buzz::Schema").generate_all!
+          described_class.new(api_spec: schema, output_dir: @dir, namespace_prefix: "Api").generate_all!
           @loader.reload
 
           expect(
-            Fizz::Buzz::Schema::RefObject.new(
-              simple_integer: Fizz::Buzz::Schema::SimpleInteger.new(value: 1)
+            Api::Components::Schemas::RefObject.new(
+              simple_integer: Api::Components::Schemas::SimpleInteger.new(value: 1)
             ).as_json
           ).to eq({simpleInteger: 1})
         end

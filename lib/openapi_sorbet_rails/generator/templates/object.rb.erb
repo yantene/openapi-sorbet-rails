@@ -2,7 +2,7 @@
 
 class <%= class_name %> < T::Struct
   extend T::Sig
-  include OpenapiSorbetRails::Interface::Schema
+  include OpenapiSorbetRails::Interface::Component
 
   <%- property_types.each do |name, v| -%>
   const :<%= name.to_s.underscore %>, <%= v[:type] %>

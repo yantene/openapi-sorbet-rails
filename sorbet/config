@@ -2,4 +2,4 @@
 .
 --ignore=/tmp/
 --ignore=/vendor/bundle
---ignore=/spec/lib/openapi_sorbet_rails/generator/schema_generator_spec.rb
+--ignore=/spec/lib/openapi_sorbet_rails/generator/component_generator_spec.rb
