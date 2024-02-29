@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
     end
   end
   spec.bindir = "bin"
-  spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
+  spec.executables = ["openapi_sorbet_rails"]
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activesupport"
