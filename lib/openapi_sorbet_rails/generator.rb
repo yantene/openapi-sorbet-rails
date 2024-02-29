@@ -21,7 +21,7 @@ module OpenapiSorbetRails
       params(
         api_spec_path: String,
         output_dir: T.any(String, Pathname),
-        namespace_prefix: String
+        namespace_prefix: T.nilable(String)
       ).returns(OpenapiSorbetRails::Generator)
     end
     def self.from_file(api_spec_path:, output_dir:, namespace_prefix:)
@@ -34,7 +34,7 @@ module OpenapiSorbetRails
       params(
         api_spec: T::Hash[Symbol, T.untyped],
         output_dir: T.any(String, Pathname),
-        namespace_prefix: String
+        namespace_prefix: T.nilable(String)
       ).void
     end
     def initialize(api_spec:, output_dir:, namespace_prefix:)
@@ -46,7 +46,7 @@ module OpenapiSorbetRails
         ),
         OpenapiSorbetRails::Generator::FileManager
       )
-      @namespace_prefix = T.let(namespace_prefix, String)
+      @namespace_prefix = T.let(namespace_prefix, T.nilable(String))
 
       @component_generator = T.let(
         OpenapiSorbetRails::Generator::ComponentGenerator.new(
