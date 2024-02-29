@@ -18,7 +18,7 @@ module OpenapiSorbetRails
     def all(api_spec_path)
       generator = OpenapiSorbetRails::Generator.from_file(
         api_spec_path:,
-        output_dir: options[:output] || "#{Dir.pwd}/output",
+        output_dir: options[:output] || "#{Dir.pwd}/app/api",
         namespace_prefix: options[:prefix]
       )
 
