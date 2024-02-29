@@ -3,7 +3,7 @@
 require_relative "lib/openapi_sorbet_rails/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "openapi-sorbet-rails"
+  spec.name = "openapi_sorbet_rails"
   spec.version = OpenapiSorbetRails::VERSION
   spec.authors = ["Shuhei YOSHIDA"]
   spec.email = ["contact@yantene.net"]

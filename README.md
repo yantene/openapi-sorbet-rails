@@ -6,11 +6,11 @@ TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_PRIOR_TO_RELEASE_TO_RUBYGEMS_ORG` with 
 
 Install the gem and add to the application's Gemfile by executing:
 
-    $ bundle add openapi-sorbet-rails
+    $ bundle add openapi_sorbet_rails
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
-    $ gem install openapi-sorbet-rails
+    $ gem install openapi_sorbet_rails
 
 ## Usage
 

@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in openapi-sorbet-rails.gemspec
+# Specify your gem's dependencies in openapi_sorbet_rails.gemspec
 gemspec
 
 gem "rake", "~> 13.0"
