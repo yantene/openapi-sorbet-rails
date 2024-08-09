@@ -44,7 +44,7 @@ module OpenapiSorbetRails
       def generate_all_schemas!
         dig_namespace(namespace: [@namespace_prefix, "Components::Schemas"].compact.join("::"))
 
-        @api_spec[:components][:schemas]&.each_key do |name|
+        @api_spec.dig(:components, :schemas)&.each_key do |name|
           generate_schema!(name:)
         end
       end
