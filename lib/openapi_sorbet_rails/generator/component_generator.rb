@@ -95,27 +95,27 @@ module OpenapiSorbetRails
         class_name = [namespace, name].compact.join("::")
 
         case schema
-        in { type: "number" }
+        in {type: "number"}
           return "Float" unless create_primitive
 
           @file_manager.create_primitive_class_file(class_name, "Float", spec_doc)
-        in { type: "integer" }
+        in {type: "integer"}
           return "Integer" unless create_primitive
 
           @file_manager.create_primitive_class_file(class_name, "Integer", spec_doc)
-        in { type: "string" }
+        in {type: "string"}
           return "String" unless create_primitive
 
           @file_manager.create_primitive_class_file(class_name, "String", spec_doc)
-        in { type: "boolean" }
+        in {type: "boolean"}
           return "T::Boolean" unless create_primitive
 
           @file_manager.create_primitive_class_file(class_name, "T::Boolean", spec_doc)
-        in { type: "null" }
+        in {type: "null"}
           return "NilClass" unless create_primitive
 
           @file_manager.create_primitive_class_file(class_name, "NilClass", spec_doc)
-        in { type: "object" }
+        in {type: "object"}
           property_types = schema[:properties].to_h do |property_name, property_schema|
             type = generate(name: property_name.to_s.camelize.to_sym, schema: property_schema, namespace: class_name, create_primitive: false)
 
@@ -129,13 +129,13 @@ module OpenapiSorbetRails
           end
 
           @file_manager.create_object_class_file(class_name, property_types, spec_doc)
-        in { oneOf: child_schemas }
+        in {oneOf: child_schemas}
           type = child_schemas.map.with_index(1) do |child_schema, index|
             generate(name: :"OneOf#{index}", schema: child_schema, namespace: class_name, create_primitive: false)
           end.then { "T.any(#{_1.join(", ")})" }
 
           @file_manager.create_oneof_class_file(class_name, type, spec_doc)
-        in { allOf: child_schemas }
+        in {allOf: child_schemas}
           child_types = child_schemas.map.with_index(1) do |child_schema, index|
             [
               "all_of#{index}",
@@ -144,14 +144,14 @@ module OpenapiSorbetRails
           end.to_h
 
           @file_manager.create_allof_class_file(class_name, child_types, spec_doc)
-        in { type: "array" }
+        in {type: "array"}
           item_type = generate(name: :Item, schema: schema[:items], namespace: class_name, create_primitive: false)
 
           # Create empty module file for item type unless it's a primitive type or $ref
           @file_manager.create_empty_module_file(class_name) if item_type == "#{class_name}::Item"
 
           return "T::Array[#{item_type}]"
-        in { "$ref": schema_ref }
+        in {"$ref": schema_ref}
           return "#{@namespace_prefix}::#{schema_ref.delete_prefix("#/").split("/").map(&:camelize).join("::")}"
         else
           raise OpenapiSorbetRails::UnsupportedSchemaError, schema
