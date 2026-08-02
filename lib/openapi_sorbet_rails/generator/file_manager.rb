@@ -53,6 +53,19 @@ module OpenapiSorbetRails
         write_module_file(class_name, file_content)
       end
 
+      # Names a type that lives elsewhere -- a $ref to a component, or an array
+      # rendered inline as T::Array[...] -- so it can be referred to by position.
+      sig { params(class_name: String, type: String, spec_doc: String).void }
+      def create_type_alias_file(class_name, type, spec_doc)
+        parts = class_name.split("::")
+        const_name = parts.last
+        namespace = parts[0..-2].join("::")
+
+        file_content = ERB.new(File.read(template_path("type_alias")), trim_mode: "-").result(binding)
+
+        write_module_file(class_name, file_content)
+      end
+
       private
 
       sig { params(module_name: String, file_content: String).void }

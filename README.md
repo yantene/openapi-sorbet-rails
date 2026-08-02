@@ -6,9 +6,9 @@ Each schema in your API description becomes a `T::Struct` laid out along Rails' 
 conventions, so a JSON payload described by the spec can be built, type-checked and serialized
 as an ordinary Ruby object.
 
-> **Status: work in progress.** Only the `components` section of a document is translated so far;
-> `paths` (operations, request bodies, parameters) are not. The gem has not been published to
-> RubyGems yet. Expect breaking changes.
+> **Status: work in progress.** `components` and the response bodies under `paths` are translated;
+> request bodies and parameters are not. The gem has not been published to RubyGems yet. Expect
+> breaking changes.
 
 ## Requirements
 
@@ -69,7 +69,8 @@ generator.generate_all!
 
 | Method | Description |
 | --- | --- |
-| `generate_all!` | Generate everything under `components` (responses and schemas). |
+| `generate_all!` | Generate everything: `components` (responses and schemas) plus response bodies under `paths`. |
+| `generate_all_path_responses!` | Generate a type for every `application/json` response under `paths`. |
 | `generate_all_schemas!` | Generate every entry of `components/schemas`. |
 | `generate_schemas!(names:)` | Generate only the named entries of `components/schemas`. |
 | `generate_all_responses!` | Generate every entry of `components/responses` that has an `application/json` body. |
@@ -162,6 +163,7 @@ Class names are derived from the position of the schema in the document, prefixe
 | --- | --- | --- |
 | `components/schemas/Post` | `<Prefix>::Components::Schemas::Post` | `components/schemas/post.rb` |
 | `components/responses/Foo` | `<Prefix>::Components::Responses::Foo` | `components/responses/foo.rb` |
+| `paths` → `/posts/{postId}` → `get` → `200` | `<Prefix>::Paths::Posts::PostId::Get::Responses::Status200` | `paths/posts/post_id/get/responses/status200.rb` |
 
 Anonymous subschemas are named after their position in the parent:
 
@@ -176,6 +178,31 @@ An `allOf` schema becomes a struct holding one `const` per member (`all_of1`, `a
 `as_json` merges the members' JSON. A `oneOf` schema becomes a struct wrapping a single `value` of
 type `T.any(...)`. Arrays do not get a class of their own — they are rendered inline as
 `T::Array[...]`.
+
+### Path responses
+
+Each `application/json` response under `paths` is named after its position in the document: the
+path template becomes a namespace (`{postId}` → `PostId`), the verb is capitalized, and the status
+code becomes `Status200`. Responses without an `application/json` body — a `204`, say — are skipped,
+and keys of a path item that are not operations (`parameters`, `summary`, `servers`) are ignored.
+
+When the response body is defined inline, the generated constant is a `T::Struct` like any other
+schema. When it is a `$ref` or an array, the type already lives elsewhere, so the constant is a type
+alias pointing at it:
+
+```ruby
+# frozen_string_literal: true
+# typed: strict
+
+module Foo::Bar::Api::Paths::Posts::Get::Responses
+  Status200 = T.type_alias { T::Array[Foo::Bar::Api::Components::Schemas::Post] }
+end
+
+# ---
+# type: array
+# items:
+#   "$ref": "#/components/schemas/Post"
+```
 
 ### Runtime dependencies of generated code
 
@@ -208,9 +235,9 @@ with the offending schema, rather than silently emitting an untyped field.
 
 ## Limitations
 
-- `paths` are not translated at all. Operations, request bodies, parameters and per-operation
-  response schemas are skipped; only `components/schemas` and `components/responses` are read.
-- `components/responses` entries are only generated when they carry an `application/json` body.
+- Under `paths`, only response bodies are translated. Request bodies and parameters are skipped.
+- Responses are only generated when they carry an `application/json` body, both under `paths` and
+  in `components/responses`.
 - Validation keywords (`enum`, `format`, `minimum`, `pattern`, …) do not affect the generated
   types. The generated structs give you shape and nullability, not full spec validation.
 - There is no deserialization helper yet — generated classes serialize (`as_json`) but do not
