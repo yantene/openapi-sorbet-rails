@@ -11,7 +11,9 @@ require "active_support/core_ext/hash/keys"
 
 require_relative "../openapi_sorbet_rails"
 require_relative "generator/file_manager"
+require_relative "generator/schema_generator"
 require_relative "generator/component_generator"
+require_relative "generator/path_generator"
 
 module OpenapiSorbetRails
   class Generator
@@ -56,11 +58,21 @@ module OpenapiSorbetRails
         ),
         OpenapiSorbetRails::Generator::ComponentGenerator
       )
+
+      @path_generator = T.let(
+        OpenapiSorbetRails::Generator::PathGenerator.new(
+          api_spec: @api_spec,
+          output_dir:,
+          namespace_prefix:
+        ),
+        OpenapiSorbetRails::Generator::PathGenerator
+      )
     end
 
     sig { void }
     def generate_all!
       @component_generator.generate_all!
+      @path_generator.generate_all!
     end
 
     sig { void }
@@ -85,6 +97,11 @@ module OpenapiSorbetRails
       names.each do |name|
         @component_generator.generate_schema!(name:)
       end
+    end
+
+    sig { void }
+    def generate_all_path_responses!
+      @path_generator.generate_all_responses!
     end
 
     sig { void }

@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+# typed: strict
+
+module <%= namespace %>
+  <%= const_name %> = T.type_alias { <%= type %> }
+end
+
+<%= spec_doc.gsub(/^/, "# ").strip %>
